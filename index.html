@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="sv">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Min Tamagotchi</title>
+
+    <!-- Typekit Stylesheet -->
+    <link rel="stylesheet" href="https://use.typekit.net/ron4vep.css">
+
+    <!-- Internal CSS -->
+    <style>
+      
+      
+      /* Reset default browser styles for consistency */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      /* Root variables for easy maintenance */
+      :root {
+        --button-bg: #4caf50;
+        --button-hover-bg: #45a049;
+        --button-active-bg: #3e8e41;
+        --button-text-color: #ffffff;
+        --button-size: clamp(50px, 8vw, 100px);
+        --button-font-size: clamp(12px, 2vw, 24px);
+        --button-transition: background-color 0.3s ease, transform 0.2s ease;
+      }
+
+      /* Grundläggande stilar */
+      html,
+      body
+      
+      {
+        margin: 0;
+        padding: 0;
+        overflow: hidden; /* Förhindrar scrollning */
+        width: 100%;
+        height: 100%;
+        position: relative; /* Positioneringskontext för absoluta element */
+        font-family: "cofo-sans-pixel", sans-serif; /* Uppdaterad font */
+        font-weight: 400; /* Uppdaterad font-weight */
+        font-style: normal; /* Uppdaterad font-style */
+      }
+      
+      
+
+      /* Loading Overlay */
+      #loading-overlay {
+        position: fixed;          /* Stay in place even when scrolling */
+        top: 0;
+        left: 0;
+        width: 100vw;             /* Full viewport width */
+        height: 100vh;            /* Full viewport height */
+        background-color: #000;   /* Black background */
+        z-index: 1000;            /* High z-index to cover all other elements */
+        display: flex;            /* For potential loading indicators */
+        align-items: center;      /* Center vertically */
+        justify-content: center;  /* Center horizontally */
+      }
+      
+      
+
+      /* Video Bakgrund */
+      .video-container {
+        position: absolute; /* Lagerplacering */
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center; /* Centrerar horisontellt */
+        align-items: center; /* Centrerar vertikalt */
+        background-color: #f0f0f0; /* Bakgrundsfärg */
+        z-index: -1; /* Bakgrunden */
+      }
+
+      .video-container video {
+        width: 17vw; /* 17% of the viewport's width */
+        max-width: 300px; /* Prevents the video from becoming too large */
+        min-width: 150px; /* Ensures the video doesn't get too small */
+        height: auto; /* Maintains aspect ratio */
+        object-fit: cover; /* Ensures the video covers the container */
+      }
+
+      /* Modell-Containern */
+      .model-container {
+        position: absolute; /* Absolut positionering */
+        top: 48.5%; /* Justerad för centrerad position */
+        left: 50%; /* Justerad för centrerad position */
+        transform: translate(-50%, -50%) scale(2); /* Centrera och förstora modellen */
+        width: 50%; /* Ökar storleken via scale, behåll bredden */
+        height: 50%; /* Ökar storleken via scale, behåll höjden */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-sizing: border-box;
+        z-index: 3; /* Över andra element */
+      }
+
+      model-viewer {
+        width: 100%; /* Fyll container */
+        height: 100%; /* Fyll container */
+        max-width: 100%; /* Ingen maxbredd */
+        max-height: 100%; /* Ingen maxhöjd */
+        /* pointer-events: none; */ /* Inaktivera interaktioner (valfritt) */
+      }
+
+      /* Runda Knappar */
+      .round-button,
+      .round-button2,
+      .round-button3 {
+        position: absolute; /* Absolut positionering inom viewport */
+        width: 8vw; /* Responsiv bredd */
+        height: 8vw; /* Responsiv höjd */
+        min-width: 50px; /* Minimum bredd */
+        min-height: 50px; /* Minimum höjd */
+        max-width: 100px; /* Maximum bredd */
+        max-height: 100px; /* Maximum höjd */
+        background-color: var(--button-bg); /* Bakgrundsfärg */
+        color: var(--button-text-color); /* Textfärg */
+        border: none; /* Ingen kantlinje */
+        border-radius: 50%; /* Perfekt cirkel */
+        cursor: pointer; /* Pekare vid hover */
+        z-index: 5; /* Över videon, under modellen */
+        transition: var(--button-transition); /* Övergångseffekt */
+        font-size: var(--button-font-size); /* Responsiv textstorlek */
+        display: flex; /* Flexbox för centrerat innehåll */
+        align-items: center; /* Vertikal centrering */
+        justify-content: center; /* Horisontell centrering */
+        opacity: 1; /* Full opacity by default */
+      }
+
+      /* Hover Effekt för Runda Knappar */
+      .round-button:hover,
+      .round-button2:hover,
+      .round-button3:hover {
+        background-color: var(--button-hover-bg); /* Mörkare vid hover */
+        transform: translateY(-2px); /* Lätta lyft vid hover */
+      }
+
+      /* Active Effekt för Runda Knappar */
+      .round-button:active,
+      .round-button2:active,
+      .round-button3:active {
+        background-color: var(--button-active-bg); /* Ännu mörkare vid aktiv */
+        transform: translateY(0); /* Ta bort lyftet när aktiv */
+      }
+
+      /* Fokusstatus för Tillgänglighet */
+      .round-button:focus,
+      .round-button2:focus,
+      .round-button3:focus {
+        outline: 2px solid #333;
+        outline-offset: 2px;
+      }
+
+      /* Positionera Runda Knappar */
+      .round-button {
+        top: 75%; /* Vertikal position */
+        left: 50%; /* Horisontell position */
+        transform: translate(-50%, -50%);
+      }
+
+      .round-button2 {
+        top: 74%;
+        left: 54%;
+        transform: translate(-50%, -50%);
+      }
+
+      .round-button3 {
+        top: 74%;
+        left: 43%;
+        transform: translate(-50%, -50%);
+      }
+
+      /* Startbutton Container */
+      .start-button-container {
+        position: absolute; /* Absolut positionering */
+        top: 50%; /* Vertikal position */
+        left: 60%; /* Ökad från 50% till 60% för att flytta mer till höger */
+        transform: translate(-50%, -50%); /* Centrera baserat på den nya positionen */
+        z-index: 4; /* Ökad från 1 till 4 för att ligga över modellen */
+        display: flex; /* Flexbox för centrerat innehåll */
+        align-items: center; /* Vertikal centrering */
+        justify-content: center; /* Horisontell centrering */
+        transition: transform 0.3s ease-out, opacity 0.3s ease-out; /* Smooth transition */
+        will-change: transform; /* Hint to browsers for performance optimization */
+      }
+
+      /* Animation class to move the button off-screen to the right */
+      .animate-out {
+        transform: translate(-50%, -50%) translateX(1000px); /* Move 1000px to the right to ensure it's off-screen */
+        opacity: 0; /* Fade out for a smoother effect */
+        transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+      }
+
+      /* Styling the startbutton */
+      .startbutton {
+        padding: 1rem 7rem; /* Responsiv padding */
+        font-size: clamp(14px, 2vw, 24px); /* Responsiv fontstorlek */
+        background-color: #dcedbd  ; /* Grön bakgrund */
+        color: var(--button-text-color); /* Vit text */
+        border: none; /* Ingen kantlinje */
+        border-radius: 0.3125rem; /* Rundade hörn */
+        cursor: pointer; /* Pekare vid hover */
+        transition: var(--button-transition);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        user-select: none; /* Förhindra texturval */
+        display: flex; /* Flexbox för centrerat innehåll */
+        align-items: center; /* Vertikal centrering */
+        justify-content: center; /* Horisontell centrering */
+        -webkit-mask-image: linear-gradient(to right, rgba(0, 0, 0, 0) 5%, rgba(0, 0, 0, 1) 40%);
+        mask-image: linear-gradient(to right, rgba(0, 0, 0, 0) 5%, rgba(0, 0, 0, 1) 40%);
+      }
+
+      }
+
+      /* För mycket små skärmar */
+      @media (max-width: 400px) {
+        .round-button,
+        .round-button2,
+        .round-button3 {
+          width: 12vw;
+          height: 12vw;
+          font-size: clamp(10px, 2vw, 18px);
+        }
+
+        .round-button {
+          top: 80%;
+          left: 50%;
+        }
+
+        .round-button2 {
+          top: 78%;
+          left: 55%;
+        }
+
+        .round-button3 {
+          top: 66%;
+          left: 40%;
+        }
+
+        .start-button-container {
+          /* Justera positioneringen om nödvändigt */
+          top: 54%;
+          left: 90%;
+          transform: translate(-50%, -50%);
+        }
+
+        .startbutton {
+          padding: 0.8rem 4rem;
+          font-size: clamp(12px, 2vw, 20px);
+        }
+
+        /* Adjust alert and points display for small screens */
+        .alert-display {
+          font-size: 1.5rem;
+          padding: 0.5rem 1rem;
+        }
+
+        .points-display {
+          font-size: 1.2rem;
+          padding: 0.3rem 0.6rem;
+        }
+      }
+
+      /* För surfplattor */
+      @media (min-width: 600px) and (max-width: 1024px) {
+        .start-button-container {
+          top: 55%;
+          left: 65%; /* Justerat från 55% till 65% för att flytta mer till höger */
+          transform: translate(-50%, -50%);
+        }
+
+        .startbutton {
+          padding: 1rem 5rem;
+          font-size: clamp(14px, 2vw, 22px);
+        }
+      }
+
+      /* För desktops och större enheter */
+      @media (min-width: 1025px) {
+        .start-button-container {
+          top: 50%;
+          left: 77%; /* Ökad från 70% till 77% för ytterligare högerförflyttning */
+          transform: translate(-50%, -50%);
+        }
+
+        .startbutton {
+          padding: 1rem 7rem;
+          font-size: clamp(16px, 2vw, 24px);
+        }
+      }
+
+      /* Optional: Adjust icon sizes within buttons if using icons */
+      .round-button i,
+      .round-button2 i,
+      .round-button3 i,
+      .startbutton i {
+        font-size: 1.2em; /* Scales with the button's font size */
+      }
+
+      /* Hide preloaded videos */
+      .preload-video {
+        display: none;
+      }
+
+      /* Alert Display Styling */
+      .alert-display {
+        position: absolute;
+        top: 70%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 2rem;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 1rem 2rem;
+        border-radius: 10px;
+        text-align: center;
+        z-index: 5; /* Above other elements */
+        display: none; /* Hidden by default */
+      }
+
+      /* Points Display Styling */
+      .points-display {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 1.5rem;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        z-index: 5; /* Above other elements */
+      }
+
+      /* Make All Buttons In Front and Invisible */
+      .round-button,
+      .round-button2,
+      .round-button3 {
+        z-index: 10; /* Higher than other elements */
+        opacity: 0; /* Make them invisible */
+        pointer-events: auto; /* Ensure they are still clickable */
+      }
+
+      /* Optional: Add cursor indication for invisible buttons */
+      .round-button,
+      .round-button2,
+      .round-button3 {
+        cursor: pointer; /* Indicate that they are clickable */
+      }
+      /* Background Video Container */
+.background-video-container {
+  position: fixed; /* Ensure it fills the viewport and stays fixed in place */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -10; /* Place it behind everything else */
+}
+
+.background-video-container video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensures the video fills the screen without distortion */
+}
+
+
+
+    </style>
+
+    <!-- Load the model-viewer library -->
+    <script
+      type="module"
+      src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"
+    ></script>
+  </head>
+  <body>
+  <!-- Background Video -->
+
+    <div class="background-video-container">
+  <video id="main-background-video" autoplay muted loop playsinline>
+    <source
+      src="https://cdn.glitch.global/1cd5670a-62e6-4854-9f79-a690c2b2a3f1/4990231-hd_1920_1080_30fps.mp4?v=1736960745964"
+      type="video/mp4"
+    />
+    Your browser does not support the video tag.
+  </video>
+</div>
+
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay"></div>
+
+    <!-- Video Background -->
+    <div class="video-container">
+      <video id="background-video" autoplay muted loop playsinline>
+        <source
+          src="https://cdn.glitch.global/1cd5670a-62e6-4854-9f79-a690c2b2a3f1/start.mp4?v=1736890528636"
+          type="video/mp4"
+        />
+        Your browser does not support the video tag.
+      </video>
+      <!-- Preload the new video -->
+      <video
+        id="new-background-video"
+        class="preload-video"
+        muted
+        loop
+        playsinline
+      >
+        <source
+          src="https://cdn.glitch.global/1cd5670a-62e6-4854-9f79-a690c2b2a3f1/Namnlo%CC%88st-2.mp4?v=1736946059541"
+          type="video/mp4"
+        />
+        Your browser does not support the video tag.
+      </video>
+      <!-- Preload the third video -->
+      <video
+        id="jumpy-video"
+        class="preload-video"
+        muted
+        loop
+        playsinline
+      >
+        <source
+          src="https://cdn.glitch.global/1cd5670a-62e6-4854-9f79-a690c2b2a3f1/gubbiiii-2.mp4?v=1736951810549"
+          type="video/mp4"
+        />
+        Your browser does not support the video tag.
+      </video>
+    </div>
+
+    <!-- Interactive Runda Knappar -->
+    <button class="round-button" aria-label="Middle Action"></button>
+    <button class="round-button2" aria-label="Care"></button>
+    <button class="round-button3" aria-label="Drink"></button>
+
+    <!-- 3D Model Viewer -->
+    <div class="model-container">
+      <model-viewer
+        src="https://cdn.glitch.me/1cd5670a-62e6-4854-9f79-a690c2b2a3f1/tama1.glb?v=1736850754151"
+        alt="En 3D-modell av min Tamagotchi"
+        disable-zoom
+        interaction-prompt="none"
+       
+      >
+      </model-viewer>
+    </div>
+
+    <!-- Startbutton Container -->
+    <div class="start-button-container">
+      <button class="startbutton">PULL ME</button>
+    </div>
+
+    <!-- Alert Display -->
+    <div id="alert" class="alert-display"></div>
+
+    <!-- Points Display -->
+    <div id="points" class="points-display">Points: 0</div>
+    
+     
+
+    <!-- Link to external JavaScript -->
+    <script src="script.js"></script>
+  </body>
+</html>
