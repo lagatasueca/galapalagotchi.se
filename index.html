@@ -3,392 +3,312 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
     <title>Min Tamagotchi</title>
 
     <!-- Typekit Stylesheet -->
     <link rel="stylesheet" href="https://use.typekit.net/ron4vep.css" />
 
-    <!-- Internal CSS -->
     <style>
+      /* Reset default browser styles for consistency */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
+      /* Root variables for easy maintenance */
+      :root {
+        --button-bg: #4caf50;
+        --button-hover-bg: #45a049;
+        --button-active-bg: #3e8e41;
+        --button-text-color: #ffffff;
+        --button-size: clamp(50px, 8vw, 100px);
+        --button-font-size: clamp(12px, 2vw, 24px);
+        --button-transition: background-color 0.3s ease, transform 0.2s ease;
+      }
 
-            /* Reset default browser styles for consistency */
-            * {
-              margin: 0;
-              padding: 0;
-              box-sizing: border-box;
-            }
+      /* Grundläggande stilar */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden; /* Förhindrar scrollning */
+        width: 100%;
+        height: 100%;
+        position: relative; /* Positioneringskontext för absoluta element */
+        font-family: "cofo-sans-pixel", sans-serif;
+        font-weight: 400;
+        font-style: normal;
+      }
 
-            /* Root variables for easy maintenance */
-            :root {
-              --button-bg: #4caf50;
-              --button-hover-bg: #45a049;
-              --button-active-bg: #3e8e41;
-              --button-text-color: #ffffff;
-              --button-size: clamp(50px, 8vw, 100px);
-              --button-font-size: clamp(12px, 2vw, 24px);
-              --button-transition: background-color 0.3s ease, transform 0.2s ease;
-            }
-.startbutton {
-  font-family: "cofo-sans-pixel", sans-serif; /* ← Add this line */
-  /* Any other styles remain here */
-}
+      /* Loading Overlay */
+      #loading-overlay {
+        position: fixed; /* Stay in place even when scrolling */
+        top: 0;
+        left: 0;
+        width: 100vw; /* Full viewport width */
+        height: 100vh; /* Full viewport height */
+        background-color: #000; /* Black background */
+        z-index: 1000; /* High z-index to cover all other elements */
+        display: flex; /* For potential loading indicators */
+        align-items: center; /* Center vertically */
+        justify-content: center; /* Center horizontally */
+      }
 
-            /* Grundläggande stilar */
-            html,
-            body
-
-            {
-              margin: 0;
-              padding: 0;
-              overflow: hidden; /* Förhindrar scrollning */
-              width: 100%;
-              height: 100%;
-              position: relative; /* Positioneringskontext för absoluta element */
-              font-family: "cofo-sans-pixel", sans-serif; /* Uppdaterad font */
-              font-weight: 400; /* Uppdaterad font-weight */
-              font-style: normal; /* Uppdaterad font-style */
-            }
-
-
-
-            /* Loading Overlay */
-            #loading-overlay {
-              position: fixed;          /* Stay in place even when scrolling */
-              top: 0;
-              left: 0;
-              width: 100vw;             /* Full viewport width */
-              height: 100vh;            /* Full viewport height */
-              background-color: #000;   /* Black background */
-              z-index: 1000;            /* High z-index to cover all other elements */
-              display: flex;            /* For potential loading indicators */
-              align-items: center;      /* Center vertically */
-              justify-content: center;  /* Center horizontally */
-            }
-
-
-
-            /* Video Bakgrund */
-            .video-container {
-              position: absolute; /* Lagerplacering */
-              top: 0;
-              left: 0;
-              width: 100%;
-              height: 100%;
-              display: flex;
-              justify-content: center; /* Centrerar horisontellt */
-              align-items: center; /* Centrerar vertikalt */
-              z-index: 1; /* Bakgrunden */
-            }
-
-            .video-container video {
-              width: 27.5vh; /* 17% of the viewport's width */
-              height: auto; /* Maintains aspect ratio */
-              object-fit: cover; /* Ensures the video covers the container */
-            }
-
-            /* Modell-Containern */
-            .model-container {
-              position: absolute; /* Absolut positionering */
-              top: 48.5%; /* Justerad för centrerad position */
-              left: 50%; /* Justerad för centrerad position */
-              transform: translate(-50%, -50%) scale(2); /* Centrera och förstora modellen */
-              width: 50%; /* Ökar storleken via scale, behåll bredden */
-              height: 50%; /* Ökar storleken via scale, behåll höjden */
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              box-sizing: border-box;
-                pointer-events: none;
-              z-index: 3; /* Över andra element */
-            }
-
-            model-viewer {
-              width: 100%; /* Fyll container */
-              height: 100%; /* Fyll container */
-              max-width: 100%; /* Ingen maxbredd */
-              max-height: 100%; /* Ingen maxhöjd */
-              /* pointer-events: none; */ /* Inaktivera interaktioner (valfritt) */
-            }
-
-            /* Runda Knappar */
-            .round-button,
-            .round-button2,
-            .round-button3 {
-              position: absolute; /* Absolut positionering inom viewport */
-              width: 8vw; /* Responsiv bredd */
-              height: 8vw; /* Responsiv höjd */
-              min-width: 50px; /* Minimum bredd */
-              min-height: 50px; /* Minimum höjd */
-              max-width: 100px; /* Maximum bredd */
-              max-height: 100px; /* Maximum höjd */
-              background-color: var(--button-bg); /* Bakgrundsfärg */
-              color: var(--button-text-color); /* Textfärg */
-              border: none; /* Ingen kantlinje */
-              border-radius: 50%; /* Perfekt cirkel */
-              cursor: pointer; /* Pekare vid hover */
-              z-index: 5; /* Över videon, under modellen */
-              transition: var(--button-transition); /* Övergångseffekt */
-              font-size: var(--button-font-size); /* Responsiv textstorlek */
-              display: flex; /* Flexbox för centrerat innehåll */
-              align-items: center; /* Vertikal centrering */
-              justify-content: center; /* Horisontell centrering */
-              opacity: 1; /* Full opacity by default */
-            }
-
-            /* Hover Effekt för Runda Knappar */
-            .round-button:hover,
-            .round-button2:hover,
-            .round-button3:hover {
-              background-color: var(--button-hover-bg); /* Mörkare vid hover */
-              transform: translateY(-2px); /* Lätta lyft vid hover */
-            }
-
-            /* Active Effekt för Runda Knappar */
-            .round-button:active,
-            .round-button2:active,
-            .round-button3:active {
-              background-color: var(--button-active-bg); /* Ännu mörkare vid aktiv */
-              transform: translateY(0); /* Ta bort lyftet när aktiv */
-            }
-
-            /* Fokusstatus för Tillgänglighet */
-            .round-button:focus,
-            .round-button2:focus,
-            .round-button3:focus {
-              outline: 2px solid #333;
-              outline-offset: 2px;
-            }
-
-            /* Positionera Runda Knappar */
-            .round-button {
-              top: 75%; /* Vertikal position */
-              left: 50%; /* Horisontell position */
-              transform: translate(-50%, -50%);
-            }
-
-            .round-button2 {
-              top: 74%;
-              left: 54%;
-              transform: translate(-50%, -50%);
-            }
-
-            .round-button3 {
-              top: 74%;
-              left: 43%;
-              transform: translate(-50%, -50%);
-            }
-
-            /* Startbutton Container */
-            .start-button-container {
-              position: absolute; /* Absolut positionering */
-              top: 50%; /* Vertikal position */
-              left: 50%; /* Ökad från 50% till 60% för att flytta mer till höger */
-              transform: translate(-50%, -50%); /* Centrera baserat på den nya positionen */
-              z-index: 2; /* Ökad från 1 till 4 för att ligga över modellen */
-              display: flex; /* Flexbox för centrerat innehåll */
-              align-items: center; /* Vertikal centrering */
-              justify-content: center; /* Horisontell centrering */
-              transition: transform 0.3s ease-out, opacity 0.3s ease-out; /* Smooth transition */
-              will-change: transform; /* Hint to browsers for performance optimization */
-                pointer-events: auto;
-            }
-
-            /* Animation class to move the button off-screen to the right */
-            .animate-out {
-              transform: translate(-50%, -50%) translateX(1000px); /* Move 1000px to the right to ensure it's off-screen */
-              opacity: 0; /* Fade out for a smoother effect */
-              transition: transform 0.5s ease-out, opacity 0.5s ease-out;
-            }
-
-            /* Styling the startbutton */
-            .startbutton {
-              padding: 1rem 7rem; /* Responsiv padding */
-              font-size: clamp(14px, 2vw, 24px); /* Responsiv fontstorlek */
-              background-color: #a7c3a2  ; /* Grön bakgrund */
-              color: var(--button-text-color); /* Vit text */
-              border: none; /* Ingen kantlinje */
-              border-radius: 0.3125rem; /* Rundade hörn */
-              cursor: pointer; /* Pekare vid hover */
-              transition: var(--button-transition);
-              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-              user-select: none; /* Förhindra texturval */
-              display: flex; /* Flexbox för centrerat innehåll */
-              align-items: center; /* Vertikal centrering */
-              justify-content: center; /* Horisontell centrering */
-             
-            }
-
-            }
-
-            /* För mycket små skärmar */
-            @media (max-width: 400px) {
-              .round-button,
-              .round-button2,
-              .round-button3 {
-                width: 12vw;
-                height: 12vw;
-                font-size: clamp(10px, 2vw, 18px);
-              }
-
-              .round-button {
-                top: 80%;
-                left: 50%;
-              }
-
-              .round-button2 {
-                top: 78%;
-                left: 55%;
-              }
-
-              .round-button3 {
-                top: 66%;
-                left: 40%;
-              }
-
-              .start-button-container {
-                /* Justera positioneringen om nödvändigt */
-                top: 54%;
-                left: 90%;
-                transform: translate(-50%, -50%);
-              }
-
-              .startbutton {
-                padding: 0.8rem 4rem;
-                font-size: clamp(12px, 2vw, 20px);
-              }
-
-              /* Adjust alert and points display for small screens */
-              .alert-display {
-                font-size: 1.5rem;
-                padding: 0.5rem 1rem;
-              }
-
-              .points-display {
-                font-size: 5rem;
-                padding: 0.3rem 0.6rem;
-              }
-            }
-
-            /* För surfplattor */
-            @media (min-width: 600px) and (max-width: 1024px) {
-              .start-button-container {
-                top: 55%;
-                left: 65%; /* Justerat från 55% till 65% för att flytta mer till höger */
-                transform: translate(-50%, -50%);
-              }
-
-              .startbutton {
-                padding: 1rem 5rem;
-                font-size: clamp(14px, 2vw, 22px);
-              }
-            }
-
-            /* För desktops och större enheter */
-            @media (min-width: 1025px) {
-              .start-button-container {
-                top: 50%;
-                left: 77%; /* Ökad från 70% till 77% för ytterligare högerförflyttning */
-                transform: translate(-50%, -50%);
-              }
-
-              .startbutton {
-                padding: 1rem 7rem;
-                font-size: clamp(16px, 2vw, 24px);
-              }
-            }
-
-            /* Optional: Adjust icon sizes within buttons if using icons */
-            .round-button i,
-            .round-button2 i,
-            .round-button3 i,
-            .startbutton i {
-              font-size: 1.2em; /* Scales with the button's font size */
-            }
-
-            /* Hide preloaded videos */
-            .preload-video {
-              display: none;
-            }
-
-            /* Alert Display Styling */
-            .alert-display {
-              position: absolute;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%);
-              font-size: 2rem;
-              background-color: rgba(255, 255, 255, 0.8);
-              padding: 1rem 2rem;
-              border-radius: 10px;
-              text-align: center;
-              z-index: 5; /* Above other elements */
-              display: none; /* Hidden by default */
-            }
-
-            /* Points Display Styling */
-            .points-display {
-              position: absolute;
-              top: 6%;
-              left: 44%;
-              font-size: 1.5rem;
-              background-color: rgba(255, 255, 255, 0.9);
-              padding: 0.5rem 1rem;
-              border-radius: 50px;
-              z-index: 5; /* Above other elements */
-            }
-
-            /* Make All Buttons In Front and Invisible */
-            .round-button,
-            .round-button2,
-            .round-button3 {
-              z-index: 10; /* Higher than other elements */
-              opacity: 0; /* Make them invisible */
-              pointer-events: auto; /* Ensure they are still clickable */
-            }
-
-            /* Optional: Add cursor indication for invisible buttons */
-            .round-button,
-            .round-button2,
-            .round-button3 {
-              cursor: pointer; /* Indicate that they are clickable */
-            }
-            /* Background Video Container */
-      .background-video-container {
-        position: fixed; /* Ensure it fills the viewport and stays fixed in place */
+      /* Video Bakgrund */
+      .video-container {
+        position: absolute; /* Lagerplacering */
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        z-index: -10; /* Place it behind everything else */
+        display: flex;
+        justify-content: center; /* Centrerar horisontellt */
+        align-items: center; /* Centrerar vertikalt */
+        z-index: 1; /* Bakgrunden */
+      }
+
+      .video-container video {
+        width: 27.5vh; /* a 'square-ish' dimension based on viewport height */
+        height: auto; 
+        object-fit: cover;
+      }
+
+      /* Modell-Containern */
+      .model-container {
+        position: absolute;
+        top: 48.5%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(2);
+        width: 50%;
+        height: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        pointer-events: none;
+        z-index: 3; 
+      }
+
+      model-viewer {
+        width: 100%;
+        height: 100%;
+        max-width: 100%;
+        max-height: 100%;
+      }
+
+      /* Runda Knappar */
+      .round-button,
+      .round-button2,
+      .round-button3 {
+        position: absolute;
+        width: 8vw;
+        height: 8vw;
+        min-width: 50px;
+        min-height: 50px;
+        max-width: 100px;
+        max-height: 100px;
+        background-color: var(--button-bg);
+        color: var(--button-text-color);
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        z-index: 5;
+        transition: var(--button-transition);
+        font-size: var(--button-font-size);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 1; 
+      }
+
+      /* Hover Effekt för Runda Knappar */
+      .round-button:hover,
+      .round-button2:hover,
+      .round-button3:hover {
+        background-color: var(--button-hover-bg);
+        transform: translateY(-2px);
+      }
+
+      /* Active Effekt för Runda Knappar */
+      .round-button:active,
+      .round-button2:active,
+      .round-button3:active {
+        background-color: var(--button-active-bg);
+        transform: translateY(0);
+      }
+
+      /* Fokusstatus för Tillgänglighet */
+      .round-button:focus,
+      .round-button2:focus,
+      .round-button3:focus {
+        outline: 2px solid #333;
+        outline-offset: 2px;
+      }
+
+      /* Positionera Runda Knappar (example positions) */
+      .round-button {
+        top: 75%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      .round-button2 {
+        top: 74%;
+        left: 54%;
+        transform: translate(-50%, -50%);
+      }
+
+      .round-button3 {
+        top: 74%;
+        left: 43%;
+        transform: translate(-50%, -50%);
+      }
+
+      /* 
+         START BUTTON CONTAINER
+         Keep it centered at all times (like .video-container).
+         Remove 'left' changes for smaller/larger screens, so it always remains center.
+      */
+      .start-button-container {
+        position: absolute;
+        top: 50%;  /* always center vertically */
+        left: 75%; /* always center horizontally */
+        transform: translate(-50%, -50%);
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+        pointer-events: auto;
+      }
+
+      /* Animation class to move the button off-screen to the right */
+      .animate-out {
+        transform: translate(-50%, -50%) translateX(1000px); 
+        opacity: 0;
+        transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+      }
+
+      /* Styling the startbutton */
+      .startbutton {
+        font-family: "cofo-sans-pixel", sans-serif;
+        padding: 1rem 7rem; 
+        font-size: clamp(14px, 2vw, 24px); /* still responsive, but keep position stable */
+        background-color: #a7c3a2; 
+        color: var(--button-text-color);
+        border: none;
+        border-radius: 0.3125rem;
+        cursor: pointer;
+        transition: var(--button-transition);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        user-select: none; 
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* OPTIONAL: Adjust smaller-screen button sizes if you wish */
+      @media (max-width: 400px) {
+        .round-button,
+        .round-button2,
+        .round-button3 {
+          width: 12vw;
+          height: 12vw;
+          font-size: clamp(10px, 2vw, 18px);
+        }
+        .round-button {
+          top: 80%;
+          left: 50%;
+        }
+        .round-button2 {
+          top: 78%;
+          left: 55%;
+        }
+        .round-button3 {
+          top: 66%;
+          left: 40%;
+        }
+        /* If you want the start button smaller on phones */
+        .startbutton {
+          padding: 0.8rem 4rem;
+          font-size: clamp(12px, 2vw, 20px);
+        }
+      }
+
+      /* Hide preloaded videos */
+      .preload-video {
+        display: none;
+      }
+
+      /* Alert Display Styling */
+      .alert-display {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 2rem;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 1rem 2rem;
+        border-radius: 10px;
+        text-align: center;
+        z-index: 5; 
+        display: none; 
+      }
+
+      /* Points Display Styling */
+      .points-display {
+        position: absolute;
+        top: 6%;
+        left: 44%;
+        font-size: 1.5rem;
+        background-color: rgba(255, 255, 255, 0.9);
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        z-index: 5; 
+      }
+
+      /* Make Buttons In Front and Invisible initially, if desired */
+      .round-button,
+      .round-button2,
+      .round-button3 {
+        z-index: 10; 
+        opacity: 0; 
+        pointer-events: auto; 
+      }
+
+      /* Background Video Container */
+      .background-video-container {
+        position: fixed; 
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -10; 
       }
 
       .background-video-container video {
         width: 100%;
         height: 100%;
-        object-fit: cover; /* Ensures the video fills the screen without distortion */
+        object-fit: cover;
       }
 
       footer {
         position: absolute;
-              top: 50%;
-              left: 0.5%;
-              width: 100%;
-              text-align: center;
-              padding: 20px 0; /* Adjust padding for better spacing */
-              color: white; /* Change text color to black */
-              top: 90%;
-              z-index: 20;
+        top: 90%;
+        left: 0.5%;
+        width: 100%;
+        text-align: center;
+        padding: 20px 0;
+        color: white;
+        z-index: 20;
+      }
 
-            }
+      footer a {
+        color: white; 
+        margin: 0 10px;
+      }
 
-            footer a {
-              color: white; /* Change link color to black */
-              margin: 0 10px;
-            }
-      
-       #main-background-video {
+      #main-background-video {
         position: fixed;
         top: 0;
         left: 0;
@@ -407,15 +327,18 @@
   </head>
   <body>
     <!-- Background Video -->
-    <video id="main-background-video" src="https://cdn.glitch.global/1cd5670a-62e6-4854-9f79-a690c2b2a3f1/4990231-hd_1920_1080_30fps.mp4?v=1736960745964" autoplay muted loop playsinline></video>
+    <video
+      id="main-background-video"
+      src="https://cdn.glitch.global/1cd5670a-62e6-4854-9f79-a690c2b2a3f1/4990231-hd_1920_1080_30fps.mp4?v=1736960745964"
+      autoplay
+      muted
+      loop
+      playsinline
+    ></video>
 
     <footer>
       <a href="https://tamapalace.tumblr.com/" class="back">&lt;SINCE 2006</a>
-      <a
-        href="http://bondgard.online/"
-        class="frontpage"
-        >VE ÖRNEHED</a
-      >
+      <a href="http://bondgard.online/" class="frontpage">VE ÖRNEHED</a>
       <a href="https://www.youtube.com/watch?v=y_U6zJoOUh4" class="forward">
         MAIN SOURCE&gt;</a
       >
@@ -434,13 +357,7 @@
         Your browser does not support the video tag.
       </video>
       <!-- Preload the new video -->
-      <video
-        id="new-background-video"
-        class="preload-video"
-        muted
-        loop
-        playsinline
-      >
+      <video id="new-background-video" class="preload-video" muted loop playsinline>
         <source
           src="https://cdn.glitch.global/1cd5670a-62e6-4854-9f79-a690c2b2a3f1/Namnlo%CC%88st-2.mp4?v=1736946059541"
           type="video/mp4"
@@ -483,15 +400,13 @@
 
     <!-- Points Display -->
     <div id="points" class="points-display">Love: 0</div>
-    
+
     <audio
-  id="alert-sound"
-  src="https://cdn.glitch.global/1cd5670a-62e6-4854-9f79-a690c2b2a3f1/Cute%20Pop%20Sound%20Effects-%5BAudioTrimmer.com%5D.mp3?v=1737025626416"
-  preload="auto"
-></audio>
+      id="alert-sound"
+      src="https://cdn.glitch.global/1cd5670a-62e6-4854-9f79-a690c2b2a3f1/Cute%20Pop%20Sound%20Effects-%5BAudioTrimmer.com%5D-%5BAudioTrimmer.com%5D.mp3?v=1737033737782"
+      preload="auto"
+    ></audio>
 
-
-    <!-- Link to external JavaScript -->
     <script src="script.js"></script>
   </body>
 </html>
