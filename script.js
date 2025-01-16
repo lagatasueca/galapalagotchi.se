@@ -7,9 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const alertDisplay = document.getElementById('alert');
   const pointsDisplay = document.getElementById('points');
-
+  
   const modelViewer = document.querySelector('model-viewer');
   const loadingOverlay = document.getElementById('loading-overlay');
+  
+  // 1. Grab the audio element from HTML
+  const alertSound = document.getElementById('alert-sound');
 
   let isDragging = false;
   let startX = 0;
@@ -28,15 +31,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Function to update the points display
   const updatePoints = () => {
-    pointsDisplay.textContent = `Points: ${carePoints}`;
+    pointsDisplay.textContent = `LoveScore: ${carePoints}`;
     localStorage.setItem('carePoints', carePoints); // Persist points
   };
 
-  // Function to display an alert
+  // 2. Play sound whenever an alert is shown
   const showAlert = (alert) => {
     currentAlert = alert;
     alertDisplay.textContent = alert.message;
     alertDisplay.style.display = 'block';
+    
+    alertSound.currentTime = 0; // Reset in case it's already playing
+    alertSound.play();         // Play the alert sound
   };
 
   // Function to hide the alert
@@ -66,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
       provideFeedback('You danced with your Tamagotchi!');
     } else {
       // Optional: Provide feedback for incorrect action
-      provideFeedback('Nothing happened. Maybe try the correct button next time!');
+      provideFeedback('That was not what i wanted!');
     }
   };
 
@@ -76,10 +82,10 @@ document.addEventListener('DOMContentLoaded', () => {
       carePoints += 1;
       updatePoints();
       hideAlert();
-      provideFeedback('You gave your Tamagotchi a drink!');
+      provideFeedback('Glug Glug Glug!');
     } else {
       // Optional: Provide feedback for incorrect action
-      provideFeedback('Nothing happened. Maybe try the correct button next time!');
+      provideFeedback('Wrong. Maybe try the correct button next time!');
     }
   };
 
